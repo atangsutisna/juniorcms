@@ -1,21 +1,29 @@
 <?php
+mysqli_report(MYSQLI_REPORT_STRICT);
 session_start();
 require_once('../module_controll/jr_get_ipaddress.php');
 class install{
 	public $array_install;
 	public $connect;
+	
 	public function _setValue($varname,$value){
 		$this->array_install[$varname]=$value;
 	}
+	
 	public function _getetValue(){
 		return $this->array_install;
 	}
+	
 	public function _checkDB($dbhost,$dbuser,$dbpassword,$dbname){
-		$mysqli=new mysqli($dbhost,$dbuser,$dbpassword,$dbname);
-		if(!$mysqli->connect_errno)
-			return true;
-		else
-			return false;
+		// I think we should to show message gracefully if connection failed
+		// because not all user understand the error stack trace
+		try {
+			$mysqli=new mysqli($dbhost,$dbuser,$dbpassword,$dbname);
+		} catch (Exception $e) {
+			echo 'Could not connect to ', $dbname, '<br>';
+			echo '<b>Error message </b>', $e->getMessage();
+			exit;
+		}
 	}
 	public function _runScriptSQL(){
 		$file="cms.sql";
