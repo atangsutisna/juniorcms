@@ -107,6 +107,7 @@ WHERE  `jr_post`.`post_category`=`jr_category`.`category_title` AND `post_id`='"
 						No data found!.
 					</div>";
 			}else{
+				
 				while($content=$rescontent->fetch_assoc()){
 					echo "
 					<div class='".$css."_imagetext'>
