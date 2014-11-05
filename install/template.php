@@ -10,7 +10,11 @@
         <h1>JUNIOR CMS </h1><hr/>
         
         <form id="form_install">
-        <span id="feedback_message"></span>
+        <div class="alert alert-danger" role="alert" id="feedback_message_ctr" style="display: none;">
+             <strong>Error: </strong>
+             <span id="feedback_message"></span>
+        </div>
+        
         <fieldset>
             <legend>Database Info</legend>
                 <label>Hostname</label>
@@ -61,12 +65,17 @@
                     url : 'install.php',
                     type : 'POST',
                     data : postData,
+                    dataType : 'json',
                     success : function(data, status, jqXHR){
-                        console.log(data);
-                        if (data.status === "error") {
-                            $('#feedback_message').text(data.feedback_message);
+                        console.log(data.status);
+                        console.log(data.status == "error");
+                        if (data.status == "error") {
+                            //console.log("create feedback_message ", data._message);
+                            $('#feedback_message_ctr').show();
+                            $('#feedback_message').text(data.error_message);
                         } else {
                             $('#feedback_message').text("success");
+                            $('#feedback_message_ctr').hide();
                         }
                     },
                     error : function(){
