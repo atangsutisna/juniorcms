@@ -1,0 +1,61 @@
+#logo {
+	text-align: center;
+    width: 420px;
+	margin: 0 auto;
+	padding: 5px;
+}
+#form_container {
+	color: #333;
+ 	background: #CCC;
+  	background: -moz-linear-gradient(#fff, #CCC);
+  	background: -o-linear-gradient(#fff, #CCC);
+  	background: -webkit-linear-gradient(#fff, #CCC);
+	text-align: left;
+	width: 430px;
+	padding: 10px;
+	margin: 0 auto;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -o-border-radius: 10px;
+    border-radius: 10px;
+	 -moz-border-radius: 0px 0px 7px 7px;
+  -webkit-border: 0px 0px 7px 7px;
+  -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+  box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
+}
+#form_container #form {
+	text-align: left;
+	margin: 0;
+	padding: 20px 10px 20px 10px;
+}
+#form_container #form_msg {
+	background: #CCC;
+  	background: -moz-linear-gradient(#fff, #6F0);
+  	background: -o-linear-gradient(#fff, #6F0);
+  	background: -webkit-linear-gradient(#fff, #6F0);
+    text-align: center;
+    padding: 10px;
+    margin: 0 0 1px 0;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -o-border-radius: 10px;
+    border-radius: 10px;
+}
+#form_container #extra_info {
+	background-color: #D3D3D3;
+	text-align: left;
+	padding: 10px;
+	margin: 1px 0 0 0;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    -o-border-radius: 10px;
+    border-radius: 10px;
+}
+a, a:visited {
+	color: #060;
+	text-decoration: underline;
+}
+a:hover {
+	text-decoration: none;
+}
