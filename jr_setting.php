@@ -2,7 +2,8 @@
 /*load all site setting
 site profile(title, tag line, setting side bar(widget recent post, category, visitor, sitepartner)*/
 $row=$conn->query('SELECT * FROM jr_site_profile');
-$data=$row->fetch_assoc();
+var_dump($row);
+$data=$row->fetch_array();
 
 //mengecek apakah memakain widget sidebar atau tidak
 if($data['use_widget']=='True'){

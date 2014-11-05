@@ -1,283 +1,110 @@
 <?php
+ini_set('display_errors', 1);
 mysqli_report(MYSQLI_REPORT_STRICT);
 session_start();
 require_once('../module_controll/jr_get_ipaddress.php');
-class install{
-	public $array_install;
-	public $connect;
-	
-	public function _setValue($varname,$value){
-		$this->array_install[$varname]=$value;
-	}
-	
-	public function _getetValue(){
-		return $this->array_install;
-	}
-	
-	public function _checkDB($dbhost,$dbuser,$dbpassword,$dbname){
-		// I think we should to show message gracefully if connection failed
-		// because not all user understand the error stack trace
-		try {
-			$mysqli=new mysqli($dbhost,$dbuser,$dbpassword,$dbname);
-		} catch (Exception $e) {
-			echo 'Could not connect to ', $dbname, '<br>';
-			echo '<b>Error message </b>', $e->getMessage();
-			exit;
-		}
-	}
-	public function _runScriptSQL(){
-		$file="cms.sql";
-		$dbfile = fopen($file, "r+"); 
-		$dbquery = fread($dbfile, filesize($file)); 
-		$queryArray=explode(';',$dbquery);
-
-		if (!$dbfile){
-			return false;
-		}else{
-			$msg="Installation Complete. Do not forget delete installation folder. Enjoy with Junior CMS";
-			$exec=new mysqli($this->array_install['db_host'],$this->array_install['db_user'],$this->array_install['db_password'],$this->array_install['db_name']);
-			foreach ($queryArray as $query) {
-            	if (strlen($query)>3){
-           			$result=$exec->query($query);
-					if(!$result){
-						$msg=$exec->error;
-						break;
-					}else{
-						continue;
-					}
-				}
-			}
-			
-			if($result==true){
-				date_default_timezone_get();
-				$user=$exec->query("INSERT INTO `jr_user`(`user_name`, `user_password`, `user_full_name`, `user_email`, `user_level`, `user_date_register`, `user_ipaddress_register`) 
-				VALUES ('".$this->array_install['username']."','".sha1($this->array_install['password'].">}{|(&^%@#$%d^&)(}{5(*&^%?$#!~G%")."','".$this->array_install['username']."','".$this->array_install['Email']."','sysadmin','".date("Y-m-d H:i:s")."','".ip()."')");
-				
-				$setting=$exec->query("INSERT INTO `jr_site_profile`(`site_name`, `site_tag_line`, `site_url`, `email_address`, `use_widget`)
-				 VALUES ('".$this->array_install['site_name']."','".$this->array_install['tag_line']."','".$this->array_install['site_url']."','".$this->array_install['Email']."','".$this->array_install['widget_use']."')");
-				
-				$post=$exec->query("INSERT INTO `jr_post` (`post_id`, `post_title`, `post_category`, `post_content`, `post_tag`, `post_user`, `post_date`, `post_ip`) 
-				VALUES (1, 'Welcome', 'General', '<p>Welcome to Junior-CMS v1.5. This CMS build for learning and it&#39;s under GPL license&nbsp;</p>\r\n\r\n<p>This is your first post. You can modify it. Enjoy with this cms.</p>\r\n\r\n<p>regards</p>\r\n\r\n<p>junior.riau18</p>\r\n', 'new post', 'hafizh', '2013-03-23 09:13:24', '127.0.0.1')");
-
-				file_put_contents("../jr_config.php","<?php
-
-//define the database name
-define(\"dbname\",\"".$this->array_install['db_name']."\");
-						
-//define the database username
-define(\"dbuser\",\"".$this->array_install['db_user']."\");
-						
-//define the database password use by username
-define(\"dbpassword\",\"".$this->array_install['db_password']."\");
-						
-//define database host/database server host to use
-define(\"dbhost\",\"".$this->array_install['db_host']."\");
-						
-//define time zone
-date_default_timezone_get();
-						
-//define salt password
-define(\"salt\",\">}{|(&^%@#$%d^&)(}{5(*&^%?$#!~G%\");
-						
-?>");
-				return array('status'=>$msg);
-			}else{
-				return array('status'=>$msg);
-			}
-		}
-	}
-	public function _install(){
-		$this->connect=$this->_checkDB($this->array_install['db_host'],$this->array_install['db_user'],$this->array_install['db_password'],$this->array_install['db_name']);
-		if($this->connect==true){
-			$this->connect=$this->_runScriptSQL();
-			if($this->connect==true){
-				return array(
-					"msg"=>$this->connect['status'],
-					"status"=>"ok");
-			}else{
-				return array(
-					"msg"=>$this->connect['status'],
-					"status"=>"fail");
-			}
-		}
-		elseif($this->connect==false){
-			return array(
-					"msg"=>"Could not run install script, check all sending data throug installation step!",
-					"status"=>"fail");
-		}
-	}
-}
-if(!isset($_GET['install'])){
-	header('Location:?install=step1');
-}
+require_once('install.class.php');
 function delete($val){
 	$arr=array("'",'-');
 	return $new=str_replace($arr,"",$val);
 }
+
+
 ?>
 <!DOCTYPE HTML>
 <html>
 <link rel='icon' href='../images/jr-icon.ico' type='image/x-icon' />
 <script type='text/javascript' src='../js/jquery-latest.js'></script>
 <title>Intaller | junior-cms</title>
-<style>
-#logo {
-	text-align: center;
-    width: 420px;
-	margin: 0 auto;
-	padding: 5px;
-}
-#form_container {
-	color: #333;
- 	background: #CCC;
-  	background: -moz-linear-gradient(#fff, #CCC);
-  	background: -o-linear-gradient(#fff, #CCC);
-  	background: -webkit-linear-gradient(#fff, #CCC);
-	text-align: left;
-	width: 430px;
-	padding: 10px;
-	margin: 0 auto;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -o-border-radius: 10px;
-    border-radius: 10px;
-	 -moz-border-radius: 0px 0px 7px 7px;
-  -webkit-border: 0px 0px 7px 7px;
-  -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-  -moz-box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-  box-shadow: rgba(0, 0, 0, 0.5) 0px 0px 5px;
-}
-#form_container #form {
-	text-align: left;
-	margin: 0;
-	padding: 20px 10px 20px 10px;
-}
-#form_container #form_msg {
-	background: #CCC;
-  	background: -moz-linear-gradient(#fff, #6F0);
-  	background: -o-linear-gradient(#fff, #6F0);
-  	background: -webkit-linear-gradient(#fff, #6F0);
-    text-align: center;
-    padding: 10px;
-    margin: 0 0 1px 0;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -o-border-radius: 10px;
-    border-radius: 10px;
-}
-#form_container #extra_info {
-	background-color: #D3D3D3;
-	text-align: left;
-	padding: 10px;
-	margin: 1px 0 0 0;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    -o-border-radius: 10px;
-    border-radius: 10px;
-}
-a, a:visited {
-	color: #060;
-	text-decoration: underline;
-}
-a:hover {
-	text-decoration: none;
-}
-</style>
+<link rel="stylesheet" href="css/style.css" type="text/css" />
+<script type="text/javascript" src="js/common.js"></script>
 <body >
 <div id='logo'><img src='../images/jr_logo.png' alt='Junior Guardian' border='0' /></div>
 <div id='form_container'>
-<div id='form_msg'><span style='font-size:14px;'><strong>Welcome to Junior CMS Installer</strong></span><br>Please enter your website detail below to configuration and setting.</div>  <div id='form'> 
+<div id='form_msg'><span style='font-size:14px;'><strong>Welcome to Junior CMS Installer</strong></span><br>Please enter your website detail below to configuration and setting.</div>  
+<div id='form'> 
+
+<?php
+//TODO: variabel $GET[install] kudu di filter, sebelum di proses
+$stepReq = isset($GET['install']) ? "step1" : $_GET['install'];
+switch ($stepReq) {
+	case "step1" :
+		include "form_site_info.php";
+		break;
+	case "step2" :
+		break;
+	case "step3" :
+		break;
+	case "step4" :
+		break;
+	case "step5" :
+		break;
+	
+}
+exit;
+?>
+</div>
+  <div id='extra_info'>
+    <table width='100%' border='0' cellspacing='0' cellpadding='0'>
+      <tr>
+        <td align='left' valign='middle'></td>
+        <td align='right' valign='middle'>Powered by <a href='http://www.juniorriau.com/' target='_new'>juniorriau</a></td>
+      </tr>
+    </table>
+  </div>
+ </div>
+</body>
+</html>
+
    <?php 
-   $data=new install();
+   $data = new Installer();
    
    if(isset($_GET['install']) && delete($_GET['install'])=="step1"){
 		?>
-		<script type='text/javascript'>
-		function check()
-		{
-			var a=document.forms["step1"]["site_name"].value;
-			var b=document.forms["step1"]["tag_line"].value;
-			var c=document.forms["step1"]["site_url"].value;
-			var d=document.forms["step1"]["Email"].value;
-			var e=document.forms["step1"]["widget_use"].value;
-			if (a==null || a=="" || b==null || b=="" || c==null || c=="" || d==null || d=="" || e==null || e=="" )
-			{
-				$("#report").html("<font color='red'>Could not process with empty field</font>");
-				return false;
-			}
-		}
-		function checkEmail()
-		{
-		var x=document.forms["step1"]["Email"].value;
-		var atpos=x.indexOf("@");
-		var dotpos=x.lastIndexOf(".");
-		if (atpos<1 || dotpos<atpos+2 || dotpos+2>=x.length)
-		  {
-		  		$("#report").html("<font color='red'>Email not valid</font>");
-				return false;
-		  }
-		  else{
-			  $("#report").html("<font color='red'></font>");
-				return true;
-		  }
-		}
-		function check_url() {
-		 var theurl=document.step1.site_url.value;
-		 var tomatch= /http:\/\/[A-Za-z0-9\.-]{3,}\.[A-Za-z]{3}/
-		 if (tomatch.test(theurl))
-		 {
-				$("#report").html("<font color='red'></font>");
-				return false;
-		 }
-		 else
-		 {
-			 $("#report").html("<font color='red'>URL not valid</font>");
-				return false; 
-		 }
-		}
-		</script>
-				<form action='?install=step2' method='post' name='step1' id='step1' onSubmit="return check();">
-				  <table width='100%' border='0' cellspacing='0' cellpadding='5'>
-					<tr>
-					  <td width='30%' align='left' valign='middle'><strong>Site Name</strong></td>
-					  <td align='left' valign='middle'><input type='text' id='site_name' name='site_name' size='35' /></td>
-					</tr>
-					<tr>
-					  <td width='30%' align='left' valign='middle'><strong>Site Tag Line</strong></td>
-					  <td align='left' valign='middle'><input type='text' id='tag_line' name='tag_line' size='35'/></td>
-					</tr>
-					<tr>
-					  <td width='30%' align='left' valign='middle'><strong>Site URL</strong></td>
-					  <td align='left' valign='middle'><input type='text' id='site_url' name='site_url' size='35' onKeyUp="return check_url();"/></td>
-					</tr>
-					<tr>
-					  <td width='30%' align='left' valign='middle'><strong>Email Address</strong></td>
-					  <td align='left' valign='middle'><input type='email' id='Email' name='Email' size='35' onKeyUp="return checkEmail();" /></td>
-					</tr>
-					<tr>
-					  <td width='30%' align='left' valign='middle'><strong>Use Widget on Sidebar</strong></td>
-					  <td align='left' valign='middle'><select name='widget_use' id='widget_use' style='width:245px;'>
-									<option value=''>--Choose Active--</option>
-									<option value='True' selected>Active</option>
-									<option value='False'>Non Active</option>
-									</select></td>
-					</tr>
-					<tr>
-					  <td width='30%' align='left' valign='middle'>&nbsp;</td>
-					  <td align='left' valign='middle'>
-						<input type='submit' value='Next' style='width:100px;height:30px'/>
-					  </td>
-					</tr>
-                    <tr>
-					  <td width='30%' align='left' valign='middle' colspan="2">
-                      <span id='report' name='report'></span>
-					  </td>
-					</tr> 
-				  </table>
-				</form>
+		
+		<form action='?install=step2' method='post' name='step1' id='step1' onSubmit="return check();">
+		  <table width='100%' border='0' cellspacing='0' cellpadding='5'>
+			<tr>
+			  <td width='30%' align='left' valign='middle'><strong>Site Name</strong></td>
+			  <td align='left' valign='middle'><input type='text' id='site_name' name='site_name' size='35' /></td>
+			</tr>
+			<tr>
+			  <td width='30%' align='left' valign='middle'><strong>Site Tag Line</strong></td>
+			  <td align='left' valign='middle'><input type='text' id='tag_line' name='tag_line' size='35'/></td>
+			</tr>
+			<tr>
+			  <td width='30%' align='left' valign='middle'><strong>Site URL</strong></td>
+			  <td align='left' valign='middle'><input type='text' id='site_url' name='site_url' size='35' onKeyUp="return check_url();"/></td>
+			</tr>
+			<tr>
+			  <td width='30%' align='left' valign='middle'><strong>Email Address</strong></td>
+			  <td align='left' valign='middle'><input type='email' id='Email' name='Email' size='35' onKeyUp="return checkEmail();" /></td>
+			</tr>
+			<tr>
+			  <td width='30%' align='left' valign='middle'><strong>Use Widget on Sidebar</strong></td>
+			  <td align='left' valign='middle'><select name='widget_use' id='widget_use' style='width:245px;'>
+							<option value=''>--Choose Active--</option>
+							<option value='True' selected>Active</option>
+							<option value='False'>Non Active</option>
+							</select></td>
+			</tr>
+			<tr>
+			  <td width='30%' align='left' valign='middle'>&nbsp;</td>
+			  <td align='left' valign='middle'>
+				<input type='submit' value='Next' style='width:100px;height:30px'/>
+			  </td>
+			</tr>
+            <tr>
+			  <td width='30%' align='left' valign='middle' colspan="2">
+              <span id='report' name='report'></span>
+			  </td>
+			</tr> 
+		  </table>
+		</form>
                 <?php
 				
-	}elseif(isset($_GET['install']) && delete($_GET['install'])=="step2"){
+	} // end step 1
+	elseif(isset($_GET['install']) && delete($_GET['install'])=="step2"){
 		$_SESSION['step1']=array(
 						'site_name'=>delete($_POST['site_name']),
 						'tag_line'=>delete($_POST['tag_line']),
@@ -285,21 +112,8 @@ a:hover {
 						'Email'=>delete($_POST['Email']),
 						'widget_use'=>delete($_POST['widget_use']));
 		?>
-		<script type='text/javascript'>
-		function check2()
-		{
-			var a=document.forms["step2"]["db_host"].value;
-			var b=document.forms["step2"]["db_name"].value;
-			var c=document.forms["step2"]["db_user"].value;
-			var d=document.forms["step2"]["db_password"].value;
-			if (a==null || a=="" || b==null || b=="" || c==null || c=="" || d==null || d=="" )
-			{
-				$("#report").html("<font color='red'>Could not process with empty field</font>");
-				return false;
-			}
-		}
-		</script>
-        		<form action='?install=step3' method='post' name='step2' id='step2' onSubmit="return check2();">
+		
+        		<form action='?install=step3' method='post' name='step2' id='step2' onSubmit="return validate_database_form();">
 				  <table width='100%' border='0' cellspacing='0' cellpadding='5'>
 					<tr>
 					  <td width='30%' align='left' valign='middle'><strong>Database Host</strong></td>
@@ -331,7 +145,8 @@ a:hover {
 				  </table>
 				</form>
                 <?php
-	}elseif(isset($_GET['install']) && delete($_GET['install'])=="step3"){
+	} // end step 2
+	elseif(isset($_GET['install']) && delete($_GET['install'])=="step3"){
 		$_SESSION['step2']=array(
 						'db_host'=>delete($_POST['db_host']),
 						'db_name'=>delete($_POST['db_name']),
@@ -356,7 +171,8 @@ a:hover {
 				  </table>
 				</form>
                 <?php
-	}elseif(isset($_GET['install']) && delete($_GET['install'])=="step4"){
+	} // end step 3
+	elseif(isset($_GET['install']) && delete($_GET['install'])=="step4"){
 		$_SESSION['step3']=array(
 						'username'=>delete($_POST['username']),
 						'password'=>delete($_POST['password']));
@@ -374,7 +190,8 @@ a:hover {
 				  </table>
 				</form>
                 <?php
-	}elseif(isset($_GET['install']) && delete($_GET['install'])=="step5"){
+	} // end step 4
+	elseif(isset($_GET['install']) && delete($_GET['install'])=="step5"){
 		$data->_setValue('site_name',$_SESSION['step1']['site_name']);
 		$data->_setValue('tag_line',$_SESSION['step1']['tag_line']);
 		$data->_setValue('site_url',$_SESSION['step1']['site_url']);
@@ -411,7 +228,7 @@ a:hover {
 					  echo"
 				  </table>
 				</form>";
-	}
+	} // end step 5
 echo "
   </div>
   <div id='extra_info'>

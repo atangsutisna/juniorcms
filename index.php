@@ -1,4 +1,5 @@
 <?php
+ini_set('display_errors', 1);
 if (!file_exists('jr_config.php')) {
 
 	echo "<script>document.location.href = 'install/';</script>";
