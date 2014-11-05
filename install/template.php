@@ -3,12 +3,14 @@
     <head>
         <title>JrCMS installer</title>
         <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+        <script type="text/javascript" src="js/jquery.js"></script>
     </head>    
     <body>
     <div class="container">
         <h1>JUNIOR CMS </h1><hr/>
         
-        <form>
+        <form id="form_install">
+        <span id="feedback_message"></span>
         <fieldset>
             <legend>Database Info</legend>
                 <label>Hostname</label>
@@ -50,5 +52,31 @@
         <button type="submit" class="btn">Install</button>
         </form>
     </div>
+    <script type="text/javascript">
+        $('document').ready(function(){
+            console.log("jalan gak ya");
+            $('#form_install').submit(function(event){
+                var postData = $(this).serializeArray();
+                $.ajax({
+                    url : 'install.php',
+                    type : 'POST',
+                    data : postData,
+                    success : function(data, status, jqXHR){
+                        console.log(data);
+                        if (data.status === "error") {
+                            $('#feedback_message').text(data.feedback_message);
+                        } else {
+                            $('#feedback_message').text("success");
+                        }
+                    },
+                    error : function(){
+                        $('#feedback_message').text("error");
+                    }
+                });
+                event.preventDefault();
+            });    
+        });
+        
+    </script>
     </body>
 </html>
